@@ -27,7 +27,6 @@ RemotePlayer.prototype.update = function () {
     this.player.rotation = Math.PI + game.physics.angleToXY(this.player, this.lastPosition.x, this.lastPosition.y)
   } 
   else {
-    this.player.rotation = Math.PI + game.physics.angleToXY(this.player, this.lastPosition.x, this.lastPosition.y)
   }
   this.lastPosition.x = this.player.x
   this.lastPosition.y = this.player.y

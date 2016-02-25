@@ -2,13 +2,17 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var Player = require('./Player')
 
+players = []; // Array dans lequel on stockes les joueurs connectés au serveur
+
+// Objet pour gérer les joueurs côté serveur
+var Player = function (id ,startX, startY) {
+  this.id = id;
+  this.x = startX;
+  this.y = startY;
+
+}
 app.use("/", express.static(__dirname + "/public"));
-players = [];
-
-
-var players	// Array of connected players
 
 /**
  * Lancement du serveur en écoutant les connexions arrivant sur le port 3000
@@ -21,65 +25,49 @@ io.on('connection', function (socket) {
 
   // Ajout des nouveaux joueurs
   socket.on('new-player', function (data){
-    // Create a new player
-    var newPlayer = new Player(data.x, data.y)
-    newPlayer.id = this.id
+    client = socket.id;
+    client = new Player(socket.id, data.x, data.y);
 
-    // Broadcast new player to connected socket clients
-    this.broadcast.emit('new-player', {id: newPlayer.id, x: newPlayer.getX(), y: newPlayer.getY()})
+    // On broadcast le nouveau joueur aux joueurs connectés
+    socket.broadcast.emit('new-player', {id: socket.id, x: client.x, y: client.y})
 
-    // Send existing players to the new player
+    // On envoi les joueurs déjà connectés (et donc présent dans l'array players), au nouveau joueur
     var i, existingPlayer
     for (i = 0; i < players.length; i++) {
       existingPlayer = players[i]
-      this.emit('new-player', {id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY()})
+      socket.emit('new-player', {id: existingPlayer.id , x: existingPlayer.x, y: existingPlayer.y})
     }
 
-    // Add new player to the players array
-    players.push(newPlayer);
+    players.push(client);
   });
 
   //Supression des joueurs à la déconnexion
   socket.on('disconnect',function (){
-    var removePlayer = playerById(this.id)
+    var removePlayer = playerById(socket.id)
 
-    // Player not found
-    if (!removePlayer) {
-      console.log('Player not found: ' + this.id)
-      return
-    }
-
-    // Remove player from players array
+    // à la déconnexion, delete le joueur de l'array players
     players.splice(players.indexOf(removePlayer), 1)
 
-    // Broadcast removed player to connected socket clients
-    this.broadcast.emit('deletePlayer', {id: this.id})
+    // On envoit également l'id du client qui vient de se connecter à tous les autres clients, pour supprimer côté client.
+    socket.broadcast.emit('deletePlayer', {id: socket.id})
   });
 
   // Mouvement des joueurs
   socket.on('move-player', function (data){
-    // Find player in array
-    var movePlayer = playerById(this.id)
-    // Player not found
-    if (!movePlayer) {
-      console.log('Player not found: ' + this.id)
-      return
-    }
+    // trouver le joueur qui bouge dans l'array, par son socket id
+    var movePlayer = playerById(socket.id)
 
-    // Update player position
-    movePlayer.setX(data.x)
-    movePlayer.setY(data.y)
+    // On met à jour ses attributs x et y
+    movePlayer.x = data.x;
+    movePlayer.y = data.y;
     
-    // Broadcast updated position to connected socket clients
-    this.broadcast.emit('move-player', {id: movePlayer.id, x: movePlayer.getX(), y: movePlayer.getY()})
+    // et on broadcast aux autres joueurs ces informations
+    socket.broadcast.emit('move-player', {id: movePlayer.id, x: movePlayer.x, y: movePlayer.y})
   });
 });
 
 
-/* ************************************************
-** GAME HELPER FUNCTIONS
-************************************************ */
-// Find player by ID
+// Fonction pour trouver un player par l'id du socket.
 function playerById (id) {
   var i
   for (i = 0; i < players.length; i++) {

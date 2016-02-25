@@ -47,19 +47,13 @@ var eventChecker = function () {
     socket.emit('new-player', { x: player.x, y: player.y })
   });
   socket.on('new-player', function (data){
-    console.log('New player connected:', data.id)
+    console.log('New player connected:', data)
     // Add new player to the remote players array
     others.push(new RemotePlayer(data.id, game, player, data.x, data.y))
   });
   // Player removed message received
   socket.on('deletePlayer', function (data){
     var removePlayer = playerById(data.id)
-
-    // Player not found
-    if (!removePlayer) {
-      console.log('Player not found: ', data.id)
-      return
-    }
 
     removePlayer.player.kill()
 
@@ -117,20 +111,13 @@ function update () {
   land.tilePosition.x = -game.camera.x
   land.tilePosition.y = -game.camera.y
 
-  if (game.input.activePointer.isDown) {
-    if (game.physics.distanceToPointer(player) >= 10) {
-      currentSpeed = 300
-
-      player.rotation = game.physics.angleToPointer(player)
-    }
-  }
   socket.emit('move-player', { x: player.x, y: player.y })
 }
 function render () {
 
 }
 
-// Find player by ID
+// Trouver un joueur par son socket id
 function playerById (id) {
   for (var i = 0; i < others.length; i++) {
     if (others[i].player.name === id) {
