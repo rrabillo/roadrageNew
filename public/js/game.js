@@ -22,7 +22,7 @@ function preload () {
 
 function create () {
   socket = io.connect()
-  game.world.setBounds(0, 0, 1024, 768);
+  game.world.setBounds(0, 0, 2000, 2000);
   land = game.add.tileSprite(0, 0, 2000, 2000, 'earth'); // Définition du BG du monde
   land.fixedToCamera = true;
   var startX = game.world.centerX - Math.random()*100;
@@ -36,7 +36,7 @@ function create () {
 
   cursors = game.input.keyboard.createCursorKeys();
   others = [];
-  /*game.camera.follow(joueur);*/
+  game.camera.follow(player);
   game.camera.deadzone = new Phaser.Rectangle(game.width/2-250,game.height/2-150, 500, 300); 
   game.camera.focusOnXY(0, 0);
   eventChecker();
@@ -48,28 +48,21 @@ var eventChecker = function () {
   });
   socket.on('new-player', function (data){
     console.log('New player connected:', data)
-    // Add new player to the remote players array
+    // Ajout du nouveau joueur dans l'array qui contiendra la liste des joueurs côté client
     others.push(new RemotePlayer(data.id, game, player, data.x, data.y))
   });
-  // Player removed message received
-  socket.on('deletePlayer', function (data){
-    var removePlayer = playerById(data.id)
+  // Si un client s'est deconnecté, on lance deletePlayer
+  socket.on('deletePlayer', function (data){// On récupère l'id du client qui s'est déconnecté
+    var removePlayer = playerById(data.id) // On le cherche dans la liste des joueurs côté client
 
-    removePlayer.player.kill()
+    removePlayer.player.kill() // On le supprime graphiquement
 
-    // Remove player from array
+    // On le supprime enfin de l'array qui contient la liste des joueurs côté client
     others.splice(others.indexOf(removePlayer), 1)
   });
   socket.on('move-player', function (data){
       var movePlayer = playerById(data.id)
-
-      // Player not found
-      if (!movePlayer) {
-        console.log('Player not found: ', data.id)
-        return
-      }
-
-      // Update player position
+      // On met à jour la position des autres joueurs (on récupère l'id, on boucle dans l'array, on trouve et on change x et y );
       movePlayer.player.x = data.x
       movePlayer.player.y = data.y
   });
