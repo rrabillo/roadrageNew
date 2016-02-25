@@ -6,10 +6,11 @@ var io = require('socket.io')(http);
 players = []; // Array dans lequel on stockes les joueurs connectés au serveur
 
 // Objet pour gérer les joueurs côté serveur
-var Player = function (id ,startX, startY) {
+var Player = function (id ,startX, startY, life) {
   this.id = id;
   this.x = startX;
   this.y = startY;
+  this.life = life;
 
 }
 app.use("/", express.static(__dirname + "/public"));
@@ -25,7 +26,6 @@ io.on('connection', function (socket) {
 
   // Ajout des nouveaux joueurs
   socket.on('new-player', function (data){
-    client = socket.id;
     client = new Player(socket.id, data.x, data.y);
 
     // On broadcast le nouveau joueur aux joueurs connectés
@@ -63,6 +63,12 @@ io.on('connection', function (socket) {
     
     // et on broadcast aux autres joueurs ces informations
     socket.broadcast.emit('move-player', {id: movePlayer.id, x: movePlayer.x, y: movePlayer.y})
+  });
+  socket.on('lose-life', function (data){
+      var touchedPlayer = playerById(data.id)
+      touchedPlayer.life = data.life;
+      socket.to(data.id).emit('lose-life', touchedPlayer.life );
+      console.log(touchedPlayer.life + touchedPlayer.id);
   });
 });
 
