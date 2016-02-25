@@ -6,10 +6,11 @@ var io = require('socket.io')(http);
 players = []; // Array dans lequel on stockes les joueurs connectés au serveur
 
 // Objet pour gérer les joueurs côté serveur
-var Player = function (id ,startX, startY, life) {
+var Player = function (id ,startX, startY, angle, life) {
   this.id = id;
   this.x = startX;
   this.y = startY;
+  this.angle = angle;
   this.life = life;
 
 }
@@ -26,16 +27,16 @@ io.on('connection', function (socket) {
 
   // Ajout des nouveaux joueurs
   socket.on('new-player', function (data){
-    client = new Player(socket.id, data.x, data.y);
+    client = new Player(socket.id, data.x, data.y, data.angle);
 
     // On broadcast le nouveau joueur aux joueurs connectés
-    socket.broadcast.emit('new-player', {id: socket.id, x: client.x, y: client.y})
+    socket.broadcast.emit('new-player', {id: socket.id, x: client.x, y: client.y, angle: client.angle})
 
     // On envoi les joueurs déjà connectés (et donc présent dans l'array players), au nouveau joueur
     var i, existingPlayer
     for (i = 0; i < players.length; i++) {
       existingPlayer = players[i]
-      socket.emit('new-player', {id: existingPlayer.id , x: existingPlayer.x, y: existingPlayer.y})
+      socket.emit('new-player', {id: existingPlayer.id , x: existingPlayer.x, y: existingPlayer.y, angle:existingPlayer.angle})
     }
 
     players.push(client);
@@ -60,15 +61,14 @@ io.on('connection', function (socket) {
     // On met à jour ses attributs x et y
     movePlayer.x = data.x;
     movePlayer.y = data.y;
-    
+    movePlayer.angle = data.angle;
     // et on broadcast aux autres joueurs ces informations
-    socket.broadcast.emit('move-player', {id: movePlayer.id, x: movePlayer.x, y: movePlayer.y})
+    socket.broadcast.emit('move-player', {id: movePlayer.id, x: movePlayer.x, y: movePlayer.y, angle: movePlayer.angle})
   });
   socket.on('lose-life', function (data){
       var touchedPlayer = playerById(data.id)
       touchedPlayer.life = data.life;
       socket.to(data.id).emit('lose-life', touchedPlayer.life );
-      console.log(touchedPlayer.life + touchedPlayer.id);
   });
 });
 

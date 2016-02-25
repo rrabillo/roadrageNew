@@ -23,6 +23,7 @@ function preload () {
 
 function create () {
   socket = io.connect()
+  game.stage.disableVisibilityChange = true;
   game.world.setBounds(0, 0, 1024, 768);
   land = game.add.tileSprite(0, 0, 2000, 2000, 'earth'); // Définition du BG du monde
   land.fixedToCamera = true;
@@ -46,7 +47,7 @@ function create () {
 
 var eventChecker = function () {
   socket.on('connect', function(){
-    socket.emit('new-player', { x: player.x, y: player.y })
+    socket.emit('new-player', { x: player.x, y: player.y, angle: player.angle})
   });
   socket.on('new-player', function (data){
     console.log('New player connected:', data)
@@ -78,9 +79,9 @@ var eventChecker = function () {
       // On met à jour la position des autres joueurs (on récupère l'id, on boucle dans l'array, on trouve et on change x et y );
       movePlayer.player.x = data.x
       movePlayer.player.y = data.y
+      movePlayer.player.angle = data.angle
   });
   socket.on('lose-life', function(life){
-    console.log('You are losing life !' + life);
     lifebar.width -= 0.2;
     if(life == 0){
       alert('perdu');
@@ -94,6 +95,7 @@ function collisionHandler(obj , obj2){
   socket.emit('lose-life', { life: this.parentObj.life , id: obj2.name});
 }
 function update () {
+  console.log(player.angle);
   for (var i = 0; i < others.length; i++) {
     if (others[i].alive) {
       others[i].update()
@@ -126,7 +128,7 @@ function update () {
   land.tilePosition.x = -game.camera.x
   land.tilePosition.y = -game.camera.y
 
-  socket.emit('move-player', { x: player.x, y: player.y })
+  socket.emit('move-player', { x: player.x, y: player.y, angle : player.angle})
 }
 function render () {
 
