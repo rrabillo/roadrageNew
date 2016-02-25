@@ -77,12 +77,15 @@ var eventChecker = function () {
             return
           }
       // On met à jour la position des autres joueurs (on récupère l'id, on boucle dans l'array, on trouve et on change x et y );
-      movePlayer.player.x = data.x
-      movePlayer.player.y = data.y
-      movePlayer.player.angle = data.angle
+      movePlayer.player.x = data.x;
+      movePlayer.player.y = data.y;
+      movePlayer.player.angle = data.angle;
   });
   socket.on('lose-life', function(life){
     lifebar.width -= 0.2;
+    player.body.velocity.x = 200;
+    player.body.velocity.y = 200;
+    player.body.angularVelocity = 200;
     if(life == 0){
       alert('perdu');
     }
@@ -95,7 +98,6 @@ function collisionHandler(obj , obj2){
   socket.emit('lose-life', { life: this.parentObj.life , id: obj2.name});
 }
 function update () {
-  console.log(player.angle);
   for (var i = 0; i < others.length; i++) {
     if (others[i].alive) {
       others[i].update()
@@ -103,26 +105,24 @@ function update () {
     }
   }
 
-  if (cursors.left.isDown) {
-    player.angle -= 4
-  } else if (cursors.right.isDown) {
-    player.angle += 4
-  }
 
-  if (cursors.up.isDown) {
-    // The speed we'll travel at
-    currentSpeed = 300
-  } else {
-    if (currentSpeed > 0) {
-      currentSpeed -= 4
+  player.body.velocity.x = 0;
+  player.body.velocity.y = 0;
+  player.body.angularVelocity = 0;
+  if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT))
+    {
+        player.body.angularVelocity = -200;
     }
-  }
+    else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
+    {
+        player.body.angularVelocity = 200;
+    }
 
-  if (currentSpeed > 0) {
-    game.physics.velocityFromRotation(player.rotation, currentSpeed, player.body.velocity)
-
-  } else {
-  }
+    if (game.input.keyboard.isDown(Phaser.Keyboard.UP))
+    {
+        game.physics.velocityFromAngle(player.angle, 300, player.body.velocity);
+        console.log(game.physics.velocityFromAngle(player.angle, 300, player.body.velocity));
+    }
   lifebar.x = player.x;
   lifebar.y = player.y - 50;
   land.tilePosition.x = -game.camera.x
