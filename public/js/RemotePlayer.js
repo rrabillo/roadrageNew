@@ -18,18 +18,19 @@ var RemotePlayer = function (index, game, player, startX, startY) {
   this.player.body.collideWorldBounds = true;
   this.player.body.bounce.setTo(1, 1);
   this.player.angle = game.rnd.angle();
-
+  this.gun = game.add.sprite(0, 0, 'weapon', 'taxi');
+  this.gun.anchor.setTo(0.2, 0.5);
+  this.gun.width = 45;
+  this.gun.height = 15;
+  this.gun.bringToTop();
   this.lastPosition = { x: x, y: y }
 }
 
 RemotePlayer.prototype.update = function () {
-  if (this.player.x !== this.lastPosition.x || this.player.y !== this.lastPosition.y) {
-   
-  } 
-  else {
-  }
-  this.lastPosition.x = this.player.x
-  this.lastPosition.y = this.player.y
+  this.lastPosition.x = this.player.x;
+  this.lastPosition.y = this.player.y;
+  this.gun.x = this.lastPosition.x;
+  this.gun.y = this.lastPosition.y;
 }
 
 window.RemotePlayer = RemotePlayer

@@ -6,13 +6,19 @@ var io = require('socket.io')(http);
 players = []; // Array dans lequel on stockes les joueurs connectés au serveur
 
 // Objet pour gérer les joueurs côté serveur
-var Player = function (id ,startX, startY, angle, life) {
+var Player = function (id ,startX, startY, angle, gunAngle, life) {
   this.id = id;
   this.x = startX;
   this.y = startY;
   this.angle = angle;
+  this.gunAngle = gunAngle;
   this.life = life;
 
+}
+var bullet = function(nextfire, x, y){
+  this.nextfire = nextfire;
+  this.x = x;
+  this.y = y;
 }
 app.use("/", express.static(__dirname + "/public"));
 
@@ -27,16 +33,16 @@ io.on('connection', function (socket) {
 
   // Ajout des nouveaux joueurs
   socket.on('new-player', function (data){
-    client = new Player(socket.id, data.x, data.y, data.angle);
+    client = new Player(socket.id, data.x, data.y, data.angle, data.gunAngle);
 
     // On broadcast le nouveau joueur aux joueurs connectés
-    socket.broadcast.emit('new-player', {id: socket.id, x: client.x, y: client.y, angle: client.angle})
+    socket.broadcast.emit('new-player', {id: socket.id, x: client.x, y: client.y, angle: client.angle, gunAngle: client.gunAngle})
 
     // On envoi les joueurs déjà connectés (et donc présent dans l'array players), au nouveau joueur
     var i, existingPlayer
     for (i = 0; i < players.length; i++) {
       existingPlayer = players[i]
-      socket.emit('new-player', {id: existingPlayer.id , x: existingPlayer.x, y: existingPlayer.y, angle:existingPlayer.angle})
+      socket.emit('new-player', {id: existingPlayer.id , x: existingPlayer.x, y: existingPlayer.y, angle:existingPlayer.angle, gunAngle:existingPlayer.gunAngle})
     }
 
     players.push(client);
@@ -62,13 +68,20 @@ io.on('connection', function (socket) {
     movePlayer.x = data.x;
     movePlayer.y = data.y;
     movePlayer.angle = data.angle;
+    movePlayer.gunAngle = data.gunAngle;
     // et on broadcast aux autres joueurs ces informations
-    socket.broadcast.emit('move-player', {id: movePlayer.id, x: movePlayer.x, y: movePlayer.y, angle: movePlayer.angle})
+    socket.broadcast.emit('move-player', {id: movePlayer.id, x: movePlayer.x, y: movePlayer.y, angle: movePlayer.angle, gunAngle: movePlayer.gunAngle})
   });
   socket.on('lose-life', function (data){
       var touchedPlayer = playerById(data.id)
       touchedPlayer.life = data.life;
       socket.to(data.id).emit('lose-life', touchedPlayer.life );
+  });
+  socket.on('player-firing', function (data){
+    socket.broadcast.emit('player-firing', {id : socket.id , x : data.x , y: data.y, bulletId : data.uid});
+  });
+  socket.on('move-bullet', function (data){
+    socket.broadcast.emit('move-bullet', data);
   });
 });
 
