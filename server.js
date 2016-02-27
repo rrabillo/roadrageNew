@@ -78,10 +78,7 @@ io.on('connection', function (socket) {
       socket.to(data.id).emit('lose-life', touchedPlayer.life );
   });
   socket.on('player-firing', function (data){
-    socket.broadcast.emit('player-firing', {id : socket.id , x : data.x , y: data.y, bulletId : data.uid});
-  });
-  socket.on('move-bullet', function (data){
-    socket.broadcast.emit('move-bullet', data);
+    socket.broadcast.emit('player-firing', data);
   });
 });
 

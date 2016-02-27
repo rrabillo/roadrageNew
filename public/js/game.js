@@ -1,4 +1,4 @@
-var game = new Phaser.Game(1024, 768, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render })
+var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render })
 
 
 var socket,
@@ -8,7 +8,7 @@ others,
 lifebar,
 currentSpeed = 0,
 cursors,
-bullet,
+bullets,
 nextFire = 0,
 fireRate = 500;
 
@@ -26,26 +26,26 @@ function preload () {
 function create () {
   socket = io.connect()
   game.stage.disableVisibilityChange = true;
-  game.world.setBounds(0, 0, 2000, 2000);
-  land = game.add.tileSprite(0, 0, 2000, 2000, 'earth'); // Définition du BG du monde
+  game.world.setBounds(0,0, 2000, 2000);
+
+  land = game.add.tileSprite(0, 0, 800, 600, 'earth'); // Définition du BG du monde
   land.fixedToCamera = true;
+
   var startX = game.world.centerX - Math.random()*100;
   var startY = game.world.centerY - Math.random()*100;
+
   player = game.add.sprite(startX, startY, 'taxi');
   player.anchor.setTo(0.5, 0.5);
+
   player.body.maxVelocity.setTo(400, 400);
   player.body.collideWorldBounds = true;
   player.body.bounce.setTo(1, 1);
+
   gun = game.add.sprite(0, 0, 'weapon', 'taxi');
   gun.anchor.setTo(0.2, 0.5);
   gun.width = 45;
   gun.height = 15;
   gun.bringToTop();
-  bullets = game.add.group();
-  bullets.createMultiple(2, 'bullet');
-  bullets.setAll('anchor.x', 0.5);
-  bullets.setAll('anchor.y', 0.5);
-  bullets.setAll('outOfBoundsKill', true);
 
   lifebar = game.add.sprite(startX, startY, 'lifebar');
   lifebar.anchor.setTo(0.5, 0.5);
@@ -53,6 +53,7 @@ function create () {
   cursors = game.input.keyboard.createCursorKeys();
   others = [];
   othersBullets = [];
+  bullets = [];
   game.camera.follow(player);
   game.camera.deadzone = new Phaser.Rectangle(game.width/2-250,game.height/2-150, 500, 300); 
   game.camera.focusOnXY(0, 0);
@@ -103,26 +104,10 @@ var eventChecker = function () {
     }
   });
   socket.on('player-firing', function (data){
-   othersBullets.push(new RemoteBullet(data.bulletId, data.id, game, player, data.x, data.y))
+   othersBullets.push(new RemoteBullet(game, data.x, data.y, data.angle, data.rotation))
   });
-  socket.on('move-bullet', function (data){
-    var moveBullet = bulletById(data.uid);
-      if(!moveBullet){
-        console.log('Bullet not found')
-      }else{
-      moveBullet.model.x = data.x;
-      moveBullet.model.y = data.y;
-      moveBullet.model.angle = data.angle;
-      moveBullet.model.events.onOutOfBounds.add( killandRemove, this );
-      }
-  });
-}
-function killandRemove(obj){
-  objtoremove = bulletById(obj.uid);
-  othersBullets.splice(othersBullets.indexOf(objtoremove),1);
-  obj.kill();
-}
 
+}
 function collisionHandler(obj , obj2){
   this.parentObj.life -= 1;
   socket.emit('lose-life', { life: this.parentObj.life , id: obj2.name});
@@ -163,26 +148,20 @@ function update () {
         fire();
   }
   socket.emit('move-player', { x: player.x, y: player.y, angle : player.angle, gunAngle : gun.angle})
-  for (i = 0; i < bullets._container.children.length; i++) {
-        // socket.emit('move-bullet',{x:bullet[i].x, y:bullet[i].y, uid: bullet[i].uniqueId});
-        if(bullets._container.children[i].uniqueId && bullets._container.children[i]._outOfBoundsFired === false){
-          socket.emit('move-bullet',{x:bullets._container.children[i].x, y:bullets._container.children[i].y, angle:bullets._container.children[i].angle , uid: bullets._container.children[i].uniqueId});
-          console.log(bullets._container.children[i].x);
-        }
+  for(i = 0; i < othersBullets.length; i++){
+      if(othersBullets[i].model._outOfBoundsFired){
+         othersBullets.splice(othersBullets.indexOf(othersBullets[i]), 1)
+      }
   }
 }
 function fire () {
-  if (game.time.now > nextFire && bullets.countDead() > 0)
-    {
+   if (game.time.now > nextFire){
         nextFire = game.time.now + fireRate;
-
-        bullet = bullets.getFirstDead();
-
-        bullet.reset(gun.x, gun.y);
-
+        bullet = game.add.sprite(gun.x, gun.y, 'bullet');
         bullet.rotation = game.physics.moveToPointer(bullet, 1000);
-        bullet.uniqueId = guid(); // On ajoute une propriété pour retrouvé la bullet plus tard
-        socket.emit('player-firing', {x: bullet.x , y: bullet.y, uid : bullet.uniqueId});
+        bullet.outOfBoundsKill = true;
+        bullets.push(bullet);
+        socket.emit('player-firing', {x: bullet.x , y: bullet.y, angle: bullet.angle, rotation: bullet.rotation});
     }
 }
 function render()
@@ -202,7 +181,7 @@ function playerById (id) {
 }
 function bulletById(id){
   for(var i = 0; i < othersBullets.length; i++){
-    if(othersBullets[i].model.uid === id){
+    if(othersBullets[i].model.uniqueId === id){
       return othersBullets[i];
     }
   }
