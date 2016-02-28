@@ -1,5 +1,6 @@
 var playState = {
 	team : null,
+	alive: true,
 	nextFire : 0,
 	fireRate : 500,
 	create : function(){
@@ -44,6 +45,14 @@ var playState = {
 		game.camera.deadzone = new Phaser.Rectangle(game.width/2-250,game.height/2-150, 500, 300); 
 		game.camera.focusOnXY(0, 0);
 		this.eventChecker();
+		explosions = game.add.group();
+	    for (var i = 0; i < 10; i++)
+	    {
+	        var explosionAnimation = explosions.create(0, 0, 'boom', [0], false);
+	        explosionAnimation.anchor.setTo(0.5, 0.5);
+	        explosionAnimation.animations.add('boom');
+	    }
+
 	},
 	update: function(){
 		/*****************************************
@@ -100,10 +109,12 @@ var playState = {
 		gun.x = player.x;
 		gun.y = player.y;
 		gun.rotation = game.physics.angleToPointer(gun);
-		if (game.input.activePointer.isDown){
+		if (game.input.activePointer.isDown && this.alive){
 		      this.fire();
 		}
-		socket.emit('move-player', { x: player.x, y: player.y, angle : player.angle, gunAngle : gun.angle})
+		if(this.alive){
+			socket.emit('move-player', { x: player.x, y: player.y, angle : player.angle, gunAngle : gun.angle})
+		}
 		for(i = 0; i < othersBullets.length; i++){
 		    if(othersBullets[i].model._outOfBoundsFired){
 		    	othersBullets.splice(othersBullets.indexOf(othersBullets[i]), 1);
@@ -111,7 +122,6 @@ var playState = {
 		}
 	},
 	eventChecker: function(){
-
 		socket.on('connect', function(){
 	    	socket.emit('new-player', { x: player.x, y: player.y, angle: player.angle, gunAngle: gun.angle, team: playState.team})
 	    	console.log(playState.team);
@@ -128,7 +138,7 @@ var playState = {
 	    	var removePlayer = playState.playerById(data.id) // On le cherche dans la liste des joueurs côté client
 	      	// Player not found
 		  	if (!removePlayer) {
-		    	console.log('Player not found: ', data.id)
+		    	console.log('Player to remove not found: ', data.id)
 		    	return
 		  	}
 		    removePlayer.gun.destroy();
@@ -142,7 +152,7 @@ var playState = {
 	    	var movePlayer = playState.playerById(data.id)
 	        // Player not found
 	        if (!movePlayer) {
-	            console.log('Player not found: ', data.id)
+	            console.log('Player to move not found: ', data.id)
 	        	return
 	        }
 	     	// On met à jour la position des autres joueurs (on récupère l'id, on boucle dans l'array, on trouve et on change x et y );
@@ -162,17 +172,62 @@ var playState = {
 			    player.frame = 2;
 			  }
 		    if(data == 0){
-		    	alert('perdu');
+		    	socket.emit('lose-game');
+		    	posX = player.x;
+		    	posY = player.y;
+		    	player.kill();
+		    	gun.kill();
+		    	lifebar.kill();
+		    	var explosionAnimation = explosions.getFirstDead();
+		        explosionAnimation.reset(posX, posY);
+		        explosionAnimation.play('boom', 30, false, true);
+		    	playState.alive = false;
+		    	
+		    	retry = game.add.sprite(game.width/2 , game.height/2, 'retry');
+				retry.anchor.setTo(0.5,0.5);
+				retry.fixedToCamera = true;
+				retry.inputEnabled = true;
+				retry.events.onInputDown.add(function () {
+					player.revive();
+					player.frame = 0;
+			    	gun.revive();
+			    	lifebar.revive();
+			    	lifebar.width = 50;
+			    	playState.alive = true;
+			    	socket.emit('resurrect');
+			    	retry.destroy();
+    			});
 		    }
 	  	});
 
 	  	socket.on('lose-life', function(data){
 	    	var touchedPlayer = playState.playerById(data.id); // Du côté des autres clients, il faut également les prévenir que le joueur perd de la vie
 	    	touchedPlayer.life = data.life; // Du côté des autres clients, il faut également les prévenir que le joueur perd de la vie
+	    	if(data.life == 0){
+	    		posX = touchedPlayer.player.x;
+	  			posY = touchedPlayer.player.y;
+	  			var explosionAnimation = explosions.getFirstDead();
+		        explosionAnimation.reset(posX, posY);
+		        explosionAnimation.play('boom', 30, false, true);
+	    	}
 	  	});
-
+	  	socket.on('lose-game', function(data){
+	  		var loosedPlayer =  playState.playerById(data.id);
+	  		loosedPlayer.gun.kill();
+		    loosedPlayer.lifebar.kill();
+		    loosedPlayer.player.kill();
+	  	});
 	  	socket.on('player-firing', function (data){
 	   		othersBullets.push(new RemoteBullet(game, data.x, data.y, data.angle, data.rotation, data.uniqueId, data.team));
+	  	});
+	  	socket.on('resurrect', function (data){
+	  		var resurrectPlayer = playState.playerById(data);
+	  		console.log(resurrectPlayer);
+	  		resurrectPlayer.life = 10;
+	  		resurrectPlayer.gun.revive();
+	  		resurrectPlayer.lifebar.revive();
+	  		resurrectPlayer.lifebar.width = 50;
+	  		resurrectPlayer.player.revive();
 	  	});
 	},
 	loseLife : function(obj , obj2){

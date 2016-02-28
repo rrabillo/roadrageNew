@@ -81,6 +81,15 @@ io.on('connection', function (socket) {
   socket.on('player-firing', function (data){
     socket.broadcast.emit('player-firing', data);
   });
+  socket.on('lose-game', function(){
+    var loosedPlayer = playerById(socket.id);
+    socket.broadcast.emit('lose-game', loosedPlayer);
+  });
+  socket.on('resurrect', function(){
+    var resurrectPlayer = playerById(socket.id);
+    resurrectPlayer.life = 10;
+    socket.broadcast.emit('resurrect', resurrectPlayer.id);
+  });
 });
 
 

@@ -43,6 +43,9 @@ RemotePlayer.prototype.update = function () {
   this.lifebar.y = this.lastPosition.y -50; 
   lifepercentage = 100 * this.life/10;
   this.lifebar.width = 50 * lifepercentage/100;
+  if(this.life  > 7){
+    this.player.frame = 0;
+  }
   if(this.life <= 7 && this.life > 3){
     this.player.frame = 1;
   }
