@@ -20,14 +20,18 @@ var playState = {
 		player.body.maxVelocity.setTo(400, 400);
 		player.body.collideWorldBounds = true;
 		player.body.bounce.setTo(1, 1);
+
 		gun = game.add.sprite(0, 0, 'weapon', 'taxi');
 		gun.anchor.setTo(0.2, 0.5);
 		gun.width = 45;
 		gun.height = 15;
 		gun.bringToTop();
+
+
 		lifebar = game.add.sprite(startX, startY, 'lifebar');
 		lifebar.anchor.setTo(0.5, 0.5);
 		lifebar.width = 50;
+
 		cursors = game.input.keyboard.createCursorKeys();
 		others = [];
 		othersBullets = [];
@@ -151,6 +155,12 @@ var playState = {
 	  	socket.on('lose-life-local', function(data){
 		    lifepercentage = 100 * data/10; // On elève la vie au joueur localement
 		    lifebar.width = 50 * lifepercentage/100; // On elève la vie au joueur localement
+		      if(data <= 7 && data > 3){
+			    player.frame = 1;
+			  }
+			  if(data <= 3){
+			    player.frame = 2;
+			  }
 		    if(data == 0){
 		    	alert('perdu');
 		    }
