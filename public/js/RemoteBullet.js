@@ -1,5 +1,5 @@
 
-var RemoteBullet = function (game,  startX, startY, angle, rotation, uniqueid) {
+var RemoteBullet = function (game,  startX, startY, angle, rotation, uniqueid, team) {
 	this.x = startX;
 	this.y = startY;
 	this.angle = angle;
@@ -9,6 +9,7 @@ var RemoteBullet = function (game,  startX, startY, angle, rotation, uniqueid) {
 	this.model.collideWorldBounds = false;
 	this.model.bringToTop();
 	this.model.uid = uniqueid;
+	this.model.firedBy = team;
 	game.physics.velocityFromAngle(this.angle, 1000, this.model.body.velocity);
 }
 window.RemoteBullet = RemoteBullet;

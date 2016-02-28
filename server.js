@@ -6,10 +6,11 @@ var io = require('socket.io')(http);
 players = []; // Array dans lequel on stockes les joueurs connectés au serveur
 
 // Objet pour gérer les joueurs côté serveur
-var Player = function (id ,startX, startY, angle, gunAngle, life) {
+var Player = function (id ,startX, startY, angle, gunAngle, life, team) {
   this.id = id;
   this.x = startX;
   this.y = startY;
+  this.team = team;
   this.angle = angle;
   this.gunAngle = gunAngle;
   this.life = life;
@@ -33,16 +34,15 @@ io.on('connection', function (socket) {
 
   // Ajout des nouveaux joueurs
   socket.on('new-player', function (data){
-    client = new Player(socket.id, data.x, data.y, data.angle, data.gunAngle, 10);
-
+    client = new Player(socket.id, data.x, data.y, data.angle, data.gunAngle, 10, data.team);
     // On broadcast le nouveau joueur aux joueurs connectés
-    socket.broadcast.emit('new-player', {id: socket.id, x: client.x, y: client.y, angle: client.angle, gunAngle: client.gunAngle, life: 10})
+    socket.broadcast.emit('new-player', {id: socket.id, x: client.x, y: client.y, angle: client.angle, gunAngle: client.gunAngle, life: 10, team : data.team})
 
     // On envoi les joueurs déjà connectés (et donc présent dans l'array players), au nouveau joueur
     var i, existingPlayer
     for (i = 0; i < players.length; i++) {
       existingPlayer = players[i]
-      socket.emit('new-player', {id: existingPlayer.id , x: existingPlayer.x, y: existingPlayer.y, angle:existingPlayer.angle, gunAngle:existingPlayer.gunAngle, life: existingPlayer.life})
+      socket.emit('new-player', {id: existingPlayer.id , x: existingPlayer.x, y: existingPlayer.y, angle:existingPlayer.angle, gunAngle:existingPlayer.gunAngle, life: existingPlayer.life, team: existingPlayer.team})
     }
 
     players.push(client);

@@ -1,15 +1,19 @@
 /* global game */
 
-var RemotePlayer = function (index, game, player, startX, startY, life) {
+var RemotePlayer = function (index, game, player, startX, startY, life, team) {
   var x = startX;
   var y = startY;
-
+  this.team = team;
   this.game = game;
   this.life = life;
   this.player = player;
   this.alive = true;
-  this.player = game.add.sprite(x, y, 'other');
-
+  if(this.team === 'taxi'){
+     this.player = game.add.sprite(x, y, 'taxi');
+  }
+  else if(this.team === 'vtc'){
+     this.player = game.add.sprite(x, y, 'vtc');
+  }
   this.player.anchor.setTo(0.5, 0.5);
 
   this.player.name = index;

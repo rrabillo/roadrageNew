@@ -1,4 +1,5 @@
 var playState = {
+	team : null,
 	nextFire : 0,
 	fireRate : 500,
 	create : function(){
@@ -9,7 +10,12 @@ var playState = {
 		land.fixedToCamera = true;
 		var startX = game.world.centerX - Math.random()*100;
 		var startY = game.world.centerY - Math.random()*100;
-		player = game.add.sprite(startX, startY, 'taxi');
+		if(this.team === 'taxi'){
+			player = game.add.sprite(startX, startY, 'taxi');
+		}
+		else if(this.team === 'vtc'){
+			player = game.add.sprite(startX, startY, 'vtc');
+		}
 		player.anchor.setTo(0.5, 0.5);
 		player.body.maxVelocity.setTo(400, 400);
 		player.body.collideWorldBounds = true;
@@ -103,13 +109,14 @@ var playState = {
 	eventChecker: function(){
 
 		socket.on('connect', function(){
-	    	socket.emit('new-player', { x: player.x, y: player.y, angle: player.angle, gunAngle: gun.angle})
+	    	socket.emit('new-player', { x: player.x, y: player.y, angle: player.angle, gunAngle: gun.angle, team: playState.team})
+	    	console.log(playState.team);
 	  	});
 
 	  	socket.on('new-player', function (data){
 		    console.log('New player connected:', data)
 		    // Ajout du nouveau joueur dans l'array qui contiendra la liste des joueurs côté client
-		    others.push(new RemotePlayer(data.id, game, player, data.x, data.y, data.life))
+		    others.push(new RemotePlayer(data.id, game, player, data.x, data.y, data.life, data.team))
 	  	});
 
 	  	// Si un client s'est deconnecté, on lance deletePlayer
@@ -150,23 +157,27 @@ var playState = {
 	  	});
 
 	  	socket.on('lose-life', function(data){
-			console.log(data);
 	    	var touchedPlayer = playState.playerById(data.id); // Du côté des autres clients, il faut également les prévenir que le joueur perd de la vie
 	    	touchedPlayer.life = data.life; // Du côté des autres clients, il faut également les prévenir que le joueur perd de la vie
 	  	});
 
 	  	socket.on('player-firing', function (data){
-	   		othersBullets.push(new RemoteBullet(game, data.x, data.y, data.angle, data.rotation, data.uniqueId))
+	   		othersBullets.push(new RemoteBullet(game, data.x, data.y, data.angle, data.rotation, data.uniqueId, data.team));
 	  	});
 	},
 	loseLife : function(obj , obj2){
-		obj2.destroy();
-  		for(var i= 0; i < othersBullets.length; i++){
-    		if(othersBullets[i].model.uid == obj2.uid){
-     			othersBullets.splice(othersBullets.indexOf(othersBullets[i]), 1);
-    		}
- 		}
-  		socket.emit('lose-life');
+			obj2.destroy();
+	  		for(var i= 0; i < othersBullets.length; i++){
+	    		if(othersBullets[i].model.uid == obj2.uid){
+	     			othersBullets.splice(othersBullets.indexOf(othersBullets[i]), 1);
+	    		}
+	 		}
+	 		if(obj2.firedBy != playState.team){
+	  			socket.emit('lose-life');
+	  		}
+	  		else{
+	  			console.log("dont shoot your teammates !");
+	  		}
 	},
 	destroyBullet : function (obj, obj2){
 		obj2.kill();
@@ -178,8 +189,9 @@ var playState = {
         	bullet.reset(gun.x, gun.y);
         	bullet.rotation = game.physics.moveToPointer(bullet, 1000);
         	bullet.uid = this.guid();
+        	bullet.bullTeam = playState.team;
         	bullet.outOfBoundsKill = true;
-        	socket.emit('player-firing', {x: bullet.x , y: bullet.y, angle: bullet.angle, rotation: bullet.rotation, uniqueId : bullet.uid});
+        	socket.emit('player-firing', {x: bullet.x , y: bullet.y, angle: bullet.angle, rotation: bullet.rotation, uniqueId : bullet.uid, team: bullet.bullTeam});
     	}
 	},
 	// Trouver un joueur par son socket id
