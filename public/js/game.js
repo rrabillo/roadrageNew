@@ -15,7 +15,7 @@ fireRate = 500;
 function preload () {
     game.load.image('taxi', 'assets/imgs/taxi2.png');
     game.load.image('other', 'assets/imgs/taxi2.png');
-    game.load.image('earth', 'assets/imgs/scorched_earth.png');
+    game.load.image('arena', 'assets/imgs/arena.png');
     game.load.image('lifebar', 'assets/imgs/lifebar.png');
     game.load.image('weapon', 'assets/imgs/weapon.png');
     game.load.image('bullet', 'assets/imgs/bullet.png');
@@ -26,9 +26,9 @@ function preload () {
 function create () {
   socket = io.connect()
   game.stage.disableVisibilityChange = true;
-  game.world.setBounds(0,0, 2000, 2000);
+  game.world.setBounds(0,0, 2048, 1024);
 
-  land = game.add.tileSprite(0, 0, 800, 600, 'earth'); // Définition du BG du monde
+  land = game.add.tileSprite(0, 0, 2048, 1024, 'arena'); // Définition du BG du monde
   land.fixedToCamera = true;
 
   var startX = game.world.centerX - Math.random()*100;
@@ -53,7 +53,13 @@ function create () {
   cursors = game.input.keyboard.createCursorKeys();
   others = [];
   othersBullets = [];
-  bullets = [];
+
+  bullets = game.add.group();
+  bullets.createMultiple(2, 'bullet');
+  bullets.setAll('anchor.x', 0.5);
+  bullets.setAll('anchor.y', 0.5);
+  bullets.setAll('outOfBoundsKill', true);
+
   game.camera.follow(player);
   game.camera.deadzone = new Phaser.Rectangle(game.width/2-250,game.height/2-150, 500, 300); 
   game.camera.focusOnXY(0, 0);
@@ -78,8 +84,9 @@ var eventChecker = function () {
     console.log('Player not found: ', data.id)
     return
   }
-    removePlayer.gun.kill();
-    removePlayer.player.kill(); // On le supprime graphiquement
+    removePlayer.gun.destroy();
+    removePlayer.lifebar.destroy();
+    removePlayer.player.destroy(); // On le supprime graphiquement
 
     // On le supprime enfin de l'array qui contient la liste des joueurs côté client
     others.splice(others.indexOf(removePlayer), 1)
@@ -97,26 +104,62 @@ var eventChecker = function () {
       movePlayer.player.angle = data.angle;
       movePlayer.gun.angle = data.gunAngle;
   });
-  socket.on('lose-life', function(life){
-    lifebar.width -= 0.2;
-    if(life == 0){
+  socket.on('lose-life', function(data){
+    lifepercentage = 100 * data/10; // On elève la vie au joueur localement
+    lifebar.width = 50 * lifepercentage/100; // On elève la vie au joueur localement
+    var touchedPlayer = playerById(data.id); // Du côté des autres clients, il faut également les prévenir que le joueur perd de la vie
+    touchedPlayer.life = data.life; // Du côté des autres clients, il faut également les prévenir que le joueur perd de la vie
+    if(data == 0){
       alert('perdu');
     }
   });
   socket.on('player-firing', function (data){
-   othersBullets.push(new RemoteBullet(game, data.x, data.y, data.angle, data.rotation))
+   othersBullets.push(new RemoteBullet(game, data.x, data.y, data.angle, data.rotation, data.uniqueId))
   });
 
 }
-function collisionHandler(obj , obj2){
-  this.parentObj.life -= 1;
-  socket.emit('lose-life', { life: this.parentObj.life , id: obj2.name});
+function loseLife(obj , obj2){
+  obj2.destroy();
+  for(var i= 0; i < othersBullets.length; i++){
+    if(othersBullets[i].model.uid == obj2.uid){
+      othersBullets.splice(othersBullets.indexOf(othersBullets[i]), 1);
+    }
+  }
+  socket.emit('lose-life');
+}
+function destroyBullet(obj, obj2){
+  obj2.kill();
 }
 function update () {
+  /*****************************************
+  *
+  *
+  * Collisions entre joueurs
+  *
+  *
+  ******************************************/
   for (var i = 0; i < others.length; i++) {
     if (others[i].alive) {
       others[i].update()
-     game.physics.collide(player, others[i].player, collisionHandler, null,  { this: this, parentObj : others[i] });
+     game.physics.collide(player, others[i].player);
+    }
+  }
+  /*****************************************
+  *
+  *
+  * Collisions entre balles tirées et autres joueurs
+  *
+  *
+  ******************************************/
+  // Recevoir une balle
+  for (var i = 0; i < othersBullets.length; i++){
+      game.physics.overlap(player, othersBullets[i].model, loseLife, null);
+  }
+  // Tirer une balle sur un autre joueur
+ for (var i = 0; i < others.length; i++) {
+    if (others[i].alive) {
+      others[i].update()
+     game.physics.overlap(bullets, others[i].player, destroyBullet, null);
     }
   }
 
@@ -155,13 +198,15 @@ function update () {
   }
 }
 function fire () {
-   if (game.time.now > nextFire){
+  if (game.time.now > nextFire && bullets.countDead() > 0)
+    {
         nextFire = game.time.now + fireRate;
-        bullet = game.add.sprite(gun.x, gun.y, 'bullet');
+        bullet = bullets.getFirstDead();
+        bullet.reset(gun.x, gun.y);
         bullet.rotation = game.physics.moveToPointer(bullet, 1000);
+        bullet.uid = guid();
         bullet.outOfBoundsKill = true;
-        bullets.push(bullet);
-        socket.emit('player-firing', {x: bullet.x , y: bullet.y, angle: bullet.angle, rotation: bullet.rotation});
+        socket.emit('player-firing', {x: bullet.x , y: bullet.y, angle: bullet.angle, rotation: bullet.rotation, uniqueId : bullet.uid});
     }
 }
 function render()

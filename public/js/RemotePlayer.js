@@ -5,7 +5,7 @@ var RemotePlayer = function (index, game, player, startX, startY) {
   var y = startY;
 
   this.game = game;
-  this.life = 250;
+  this.life = 10;
   this.player = player;
   this.alive = true;
   this.player = game.add.sprite(x, y, 'other');
@@ -23,6 +23,10 @@ var RemotePlayer = function (index, game, player, startX, startY) {
   this.gun.width = 45;
   this.gun.height = 15;
   this.gun.bringToTop();
+  this.lifebar = game.add.sprite(startX, startY, 'lifebar');
+  this.lifebar.anchor.setTo(0.5, 0.5);
+  this.lifebar.width = 50;
+  this.lifebar.bringToTop();
   this.lastPosition = { x: x, y: y }
 }
 
@@ -31,6 +35,10 @@ RemotePlayer.prototype.update = function () {
   this.lastPosition.y = this.player.y;
   this.gun.x = this.lastPosition.x;
   this.gun.y = this.lastPosition.y;
+  this.lifebar.x = this.lastPosition.x; 
+  this.lifebar.y = this.lastPosition.y -50; 
+  lifepercentage = 100 * this.life/10;
+  this.lifebar.width = 50 * lifepercentage/100;
 }
 
 window.RemotePlayer = RemotePlayer

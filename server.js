@@ -33,7 +33,7 @@ io.on('connection', function (socket) {
 
   // Ajout des nouveaux joueurs
   socket.on('new-player', function (data){
-    client = new Player(socket.id, data.x, data.y, data.angle, data.gunAngle);
+    client = new Player(socket.id, data.x, data.y, data.angle, data.gunAngle, 10);
 
     // On broadcast le nouveau joueur aux joueurs connectés
     socket.broadcast.emit('new-player', {id: socket.id, x: client.x, y: client.y, angle: client.angle, gunAngle: client.gunAngle})
@@ -72,10 +72,11 @@ io.on('connection', function (socket) {
     // et on broadcast aux autres joueurs ces informations
     socket.broadcast.emit('move-player', {id: movePlayer.id, x: movePlayer.x, y: movePlayer.y, angle: movePlayer.angle, gunAngle: movePlayer.gunAngle})
   });
-  socket.on('lose-life', function (data){
-      var touchedPlayer = playerById(data.id)
-      touchedPlayer.life = data.life;
-      socket.to(data.id).emit('lose-life', touchedPlayer.life );
+  socket.on('lose-life', function (){
+      var touchedPlayer = playerById(socket.id)
+      touchedPlayer.life -= 1;
+      socket.emit('lose-life', {life: touchedPlayer.life} );
+      socket.broadcast.emit('lose-life', {id:touchedPlayer.id, life:touchedPlayer.life});
   });
   socket.on('player-firing', function (data){
     socket.broadcast.emit('player-firing', data);
