@@ -36,13 +36,13 @@ io.on('connection', function (socket) {
     client = new Player(socket.id, data.x, data.y, data.angle, data.gunAngle, 10);
 
     // On broadcast le nouveau joueur aux joueurs connectés
-    socket.broadcast.emit('new-player', {id: socket.id, x: client.x, y: client.y, angle: client.angle, gunAngle: client.gunAngle})
+    socket.broadcast.emit('new-player', {id: socket.id, x: client.x, y: client.y, angle: client.angle, gunAngle: client.gunAngle, life: 10})
 
     // On envoi les joueurs déjà connectés (et donc présent dans l'array players), au nouveau joueur
     var i, existingPlayer
     for (i = 0; i < players.length; i++) {
       existingPlayer = players[i]
-      socket.emit('new-player', {id: existingPlayer.id , x: existingPlayer.x, y: existingPlayer.y, angle:existingPlayer.angle, gunAngle:existingPlayer.gunAngle})
+      socket.emit('new-player', {id: existingPlayer.id , x: existingPlayer.x, y: existingPlayer.y, angle:existingPlayer.angle, gunAngle:existingPlayer.gunAngle, life: existingPlayer.life})
     }
 
     players.push(client);
@@ -75,7 +75,7 @@ io.on('connection', function (socket) {
   socket.on('lose-life', function (){
       var touchedPlayer = playerById(socket.id)
       touchedPlayer.life -= 1;
-      socket.emit('lose-life', {life: touchedPlayer.life} );
+      socket.emit('lose-life-local', touchedPlayer.life);
       socket.broadcast.emit('lose-life', {id:touchedPlayer.id, life:touchedPlayer.life});
   });
   socket.on('player-firing', function (data){

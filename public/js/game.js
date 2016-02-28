@@ -73,7 +73,7 @@ var eventChecker = function () {
   socket.on('new-player', function (data){
     console.log('New player connected:', data)
     // Ajout du nouveau joueur dans l'array qui contiendra la liste des joueurs côté client
-    others.push(new RemotePlayer(data.id, game, player, data.x, data.y))
+    others.push(new RemotePlayer(data.id, game, player, data.x, data.y, data.life))
   });
   // Si un client s'est deconnecté, on lance deletePlayer
   socket.on('deletePlayer', function (data){// On récupère l'id du client qui s'est déconnecté
@@ -104,14 +104,17 @@ var eventChecker = function () {
       movePlayer.player.angle = data.angle;
       movePlayer.gun.angle = data.gunAngle;
   });
-  socket.on('lose-life', function(data){
+  socket.on('lose-life-local', function(data){
     lifepercentage = 100 * data/10; // On elève la vie au joueur localement
     lifebar.width = 50 * lifepercentage/100; // On elève la vie au joueur localement
-    var touchedPlayer = playerById(data.id); // Du côté des autres clients, il faut également les prévenir que le joueur perd de la vie
-    touchedPlayer.life = data.life; // Du côté des autres clients, il faut également les prévenir que le joueur perd de la vie
     if(data == 0){
       alert('perdu');
     }
+  });
+  socket.on('lose-life', function(data){
+    console.log(data);
+    var touchedPlayer = playerById(data.id); // Du côté des autres clients, il faut également les prévenir que le joueur perd de la vie
+    touchedPlayer.life = data.life; // Du côté des autres clients, il faut également les prévenir que le joueur perd de la vie
   });
   socket.on('player-firing', function (data){
    othersBullets.push(new RemoteBullet(game, data.x, data.y, data.angle, data.rotation, data.uniqueId))

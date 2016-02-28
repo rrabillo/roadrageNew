@@ -1,11 +1,11 @@
 /* global game */
 
-var RemotePlayer = function (index, game, player, startX, startY) {
+var RemotePlayer = function (index, game, player, startX, startY, life) {
   var x = startX;
   var y = startY;
 
   this.game = game;
-  this.life = 10;
+  this.life = life;
   this.player = player;
   this.alive = true;
   this.player = game.add.sprite(x, y, 'other');
