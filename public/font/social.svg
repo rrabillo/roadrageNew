@@ -1,0 +1,14 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg">
+<metadata>Copyright (C) 2013 by original authors @ fontello.com</metadata>
+<defs>
+<font id="social" horiz-adv-x="1000" >
+<font-face font-family="social" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850" descent="-150" />
+<missing-glyph horiz-adv-x="1000" />
+<glyph glyph-name="facebook" unicode="&#xf300;" d="m124-150v469h-124v169h124v145c0 113 73 217 242 217c69 0 119-7 119-7l-4-157s-51 0-108 0c-60 0-70-28-70-74v-124h183l-8-169h-175v-469h-179" horiz-adv-x="486" />
+<glyph glyph-name="twitter" unicode="&#xf303;" d="m1231 732q-51-77-126-131q1-14 1-32q0-102-30-203q-29-102-90-195q-61-92-145-164q-84-72-201-114q-118-43-253-43q-210 0-387 113q31-3 60-3q176 0 314 108q-82 2-147 51q-64 49-89 125q24-5 48-5q34 0 66 9q-87 17-145 87q-57 69-57 160l0 4q53-30 114-32q-52 34-82 90q-30 55-30 120q0 68 34 127q95-117 230-186q135-70 290-78q-6 28-6 58q0 104 74 178q74 74 178 74q110 0 185-80q85 17 160 62q-29-91-111-140q76 9 145 39z" horiz-adv-x="1231" />
+<glyph glyph-name="rss" unicode="&#xe042;" d="m0-150l0 199q82 0 141-58t58-141l-199 0z m0 400l0 200q248 0 424-176t176-424l-200 0q0 166-117 283t-283 117z m0 401l0 199q203 0 389-79t319-213t213-319t79-389l-199 0q0 217-108 401t-292 292t-401 108z" horiz-adv-x="1000" />
+</font>
+</defs>
+</svg>

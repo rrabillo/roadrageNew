@@ -1,17 +1,123 @@
-<!doctype html>
-<html lang='en'>
-  <head>
-    <meta charset='UTF-8' />
-    <title>Phaser multiplayer game</title>
-    <script src='/js/phaser.min.js'></script>
-    <script src='/socket.io/socket.io.js'></script>
-  </head>
-  <body>
-    <script src='/js/RemotePlayer.js'></script>
-    <script src='/js/RemoteBullet.js'></script>
-    <script src='/js/load.js'></script>
-    <script src='/js/menu.js'></script>
-    <script src='/js/play.js'></script>
-    <script src='/js/game.js'></script>
-  </body>
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="fr"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8 is-ie-7" lang="fr"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9 is-ie8" lang="fr"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="fr"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <title>Road Rage</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="initial-scale=1">
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Oswald' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="icon" type="image/png" href="img/favicon.png" />
+        <script>
+            document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/,'js');
+        </script>
+        <script src="js/jquery-1.10.2.min.js"></script>
+        <!--[if lt IE 9]><script type="text/javascript"> document.createElement("header"); document.createElement("footer"); document.createElement("section"); document.createElement("aside"); document.createElement("nav"); document.createElement("article"); document.createElement("figure"); document.createElement("figcaption"); </script><![endif]-->
+        <script>
+            $(function () {
+                $("#banner").addClass('slideUp');
+                $(".btn-nav").click(function(e){
+                    e.preventDefault();
+                    $(this).toggleClass("open");
+                    $('[role="navigation"]').slideToggle("600");
+                });
+            })
+        </script>
+    </head>
+    <body role="document">
+
+        <header role="banner">
+            <div class="wrapper">
+                <a href="#" rel="home">
+                    <h1>Road Rage</h1>
+                </a>
+                <div class="btn-nav">
+                    <div class="inner"></div>
+                </div>
+                <nav role="navigation">
+                    <ul class="list-inline">
+                        <li><a href="#game" class="is-active" rel="home">Jouer</a></li><li><a href="#about">à propos</a></li>
+                        <li><a href="#rules">Règles</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <section role="main">
+            <header>
+                <div id="game banner">
+                    <h1>VTC <span style="text-transform: none;">vs</span> TAXI</h1>
+                    <p>Qui va remporter la course ?<br /> Prenez parti !</p>
+                    <a href="game.html" class="btn">Je veux jouer</a>
+                </div>
+            </header>
+            <div class="disp-p wrapper" id="about">
+                <div>
+                    <div class="disp-center">
+                        <h2>Combat pour ta cause</h2>
+                        <p class="p-center">Choisi ton camp ! Taxi ou VTC ? Tu combattras pour ta cause !<br />Le but: éliminer ton adversaire pour ne plus avoir de concurrence.</p>
+                        
+                    </div>
+                   
+                </div>
+            </div>
+
+            <div class="disp-t wrapper" id="rules">
+                <div class="disp-tr">
+                    <div class="disp-tc">
+                        <h2>Joue avec ton clavier</h2>
+                        <p>Pour jouer, maintien la touche haut pour avancer et presse la touche droite ou gauche pour tourner: easy !</p>
+                    </div>
+                    <div class="disp-tc">
+                        <h2>Bats toi</h2>
+                        <p>Tu dois combattre ton adversaire. Utilise le clic gauche de ta souri pour tirer et atteindre ta cible. Sa vie diminuera jusqu'à ce qu'il soit détrui.</p>
+
+                        
+                    </div>
+                </div>
+
+                <div class="disp-tr">
+                    <div class="disp-tc">
+                        <h2>Reste en vie</h2>
+                        <p>Tu dois rester en vie tout en combattant ton adversaire. Lorsqu'il te touche avec ses balles, tu perds de la vie. Ton captial vie diminuera, une fois dilapidé, tu mourras.</p>
+                        
+                    </div>
+                    <div class="disp-tc">
+                        <h2>Version Premium</h2>
+                        <p>Customise ta voiture et améliore ses performances: vitesse, style, arme ...</p>
+                        
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="newsletter">
+            <header>
+                <h1>Tenez-vous informé des dernières actus</h1>
+            </header>
+            <form action="#">
+                <input type="email" placeholder="Votre email" id="form-email" name="form-email" required />
+                <input type="submit" value="Envoyer" />
+            </form>
+            <p>Promis nous ne vous spammerons pas :)</p>
+        </section>
+        <footer role="contentinfo">
+            <div class="wrapper disp-t">
+                <small class="disp-tc">© 2016 Road Rage / Par amour du jeu</small>
+                <ul class="disp-tc list-inline">
+                    <li><a href="#" class="icon-facebook" rel="external">Facebook</a></li>
+                    <li><a href="#" class="icon-twitter" rel="external">Twitter</a></li>
+                    <li><a href="#" class="icon-rss">RSS</a></li>
+                </ul>
+            </div>
+        </footer>
+        <a id="to-top" href="#">Retour haut de page</a>
+    </body>
 </html>
+
+
+

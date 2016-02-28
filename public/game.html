@@ -1,0 +1,74 @@
+<!doctype html>
+<html class="no-js" lang="fr">
+    <head>
+        <meta charset="utf-8">
+        <title>Road Rage</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="initial-scale=1">
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Oswald' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="icon" type="image/png" href="img/favicon.png" />
+        <script>
+            document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/,'js');
+        </script>
+        <script src="js/jquery-1.10.2.min.js"></script>
+        <!--[if lt IE 9]><script type="text/javascript"> document.createElement("header"); document.createElement("footer"); document.createElement("section"); document.createElement("aside"); document.createElement("nav"); document.createElement("article"); document.createElement("figure"); document.createElement("figcaption"); </script><![endif]-->
+        <script>
+            $(function () {
+                $("#banner").addClass('slideUp');
+                $(".btn-nav").click(function(e){
+                    e.preventDefault();
+                    $(this).toggleClass("open");
+                    $('[role="navigation"]').slideToggle("600");
+                });
+            })
+        </script>
+        <script src='/js/phaser.min.js'></script>
+        <script src='/socket.io/socket.io.js'></script>
+    </head>
+    <body role="document">
+
+        <header role="banner">
+            <div class="wrapper">
+                <a href="#" rel="home">
+                    <h1>Road Rage</h1>
+                </a>
+                <div class="btn-nav">
+                    <div class="inner"></div>
+                </div>
+                <nav role="navigation">
+                    <ul class="list-inline">
+                        <li><a href="#game" class="is-active" rel="home">Jouer</a></li><li><a href="#about">à propos</a></li>
+                        <li><a href="#rules">Règles</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <section role="main" id="game">
+            
+        </section>
+        <footer role="contentinfo">
+            <div class="wrapper disp-t">
+                <small class="disp-tc">© 2016 Road Rage / Par amour du jeu</small>
+                <ul class="disp-tc list-inline">
+                    <li><a href="#" class="icon-facebook" rel="external">Facebook</a></li>
+                    <li><a href="#" class="icon-twitter" rel="external">Twitter</a></li>
+                    <li><a href="#" class="icon-rss">RSS</a></li>
+                </ul>
+            </div>
+        </footer>
+        <a id="to-top" href="#">Retour haut de page</a>
+    </body>
+    <script src='/js/RemotePlayer.js'></script>
+    <script src='/js/RemoteBullet.js'></script>
+    <script src='/js/load.js'></script>
+    <script src='/js/menu.js'></script>
+    <script src='/js/play.js'></script>
+    <script src='/js/game.js'></script>
+</html>
+
+
+

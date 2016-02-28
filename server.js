@@ -2,7 +2,6 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-
 players = []; // Array dans lequel on stockes les joueurs connectés au serveur
 
 // Objet pour gérer les joueurs côté serveur
@@ -22,7 +21,6 @@ var bullet = function(nextfire, x, y){
   this.y = y;
 }
 app.use("/", express.static(__dirname + "/public"));
-
 /**
  * Lancement du serveur en écoutant les connexions arrivant sur le port 3000
  */
